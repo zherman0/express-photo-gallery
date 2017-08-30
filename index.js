@@ -40,7 +40,7 @@ module.exports = function(photoPath, options) {
       paths.thumbs = photoPath + '/thumbs';
     }
 
-    app.use('/photos', static(paths.previews || photoPath));
+    app.use('/photos', static(photoPath));
     if (paths.thumbs) app.use('/thumbs', static(paths.thumbs));
     if (paths.previews) app.use('/downloads', static(photoPath));
 
