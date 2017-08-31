@@ -18,7 +18,7 @@
       </div>
       <div class="lg-sub-html">
           <div   style="padding:10px;">
-              <h1>Upload to the Object Store Photo Gallery</h1>
+              <h1>Upload to the Object Store Photo Gallery (Bucket={{bucket}})</h1>
               <p>Please select a image to upload</p>
               <form ref='uploadForm'
                     id='uploadForm'
@@ -37,7 +37,6 @@
       function toggleCaption() {
             var curVal = $('.lg-sub-html').css('visibility');
             $('.lg-sub-html').css('visibility', curVal == 'hidden' ? 'visible' : 'hidden');
-            //alert("Hi");
        }
       $(document).ready(function(){
         $('#lightgallery').lightGallery({{{data}}});

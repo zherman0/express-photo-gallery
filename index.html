@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <title>Demo - Photo Store</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -28,7 +29,21 @@
         <h1>Welcome to the Object Store Photo Gallery</h1>
         <p>This is a simple demo to show object store.</p>
         <p><a class="btn btn-primary btn-lg" href="/photos" role="button">Go to Photos</a></p>
+        <p>Bucket = <span id="storagepath"></span></p>
+        <p>Region = <span id="region"></span></p>
+        <p>S3 Type = <span id="s3type"></span></p>
+        <p>Cluster IP = <span id="clusterip"></span></p>
+
     </div>
 </div>
+<script>
+    $.get( "/getvar", function( data ) {
+        document.getElementById("storagepath").innerHTML = data.bucket;
+        document.getElementById("region").innerHTML = data.region ? data.region : "Not Set";
+        document.getElementById("s3type").innerHTML = data.s3Type;
+        document.getElementById("clusterip").innerHTML = data.clusterIP ? data.clusterIP : "Not Set";
+    });
+</script>
 </body>
+
 </html>

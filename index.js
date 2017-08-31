@@ -32,18 +32,7 @@ module.exports = function(photoPath, options) {
 
     if (!directoryExists(photoPath)) throw new Error('Must provide valid path for photos');
 
-    if (directoryExists(photoPath + '/previews')) {
-      paths.previews = photoPath + '/previews';
-    }
-
-    if (directoryExists(photoPath + '/thumbs')) {
-      paths.thumbs = photoPath + '/thumbs';
-    }
-
     app.use('/photos', static(photoPath));
-    if (paths.thumbs) app.use('/thumbs', static(paths.thumbs));
-    if (paths.previews) app.use('/downloads', static(photoPath));
-
   }
 
   app.use(static(resolveModulePath('lightgallery') + '/dist'));
@@ -63,10 +52,10 @@ module.exports = function(photoPath, options) {
       });
 
     } else {
-
       getPayload(paths, options, function(payload) {
         res.send(mustache.render(template, {
           title: options.title || 'Photo Gallery',
+          bucket: options.bucket || 'Unknown',
           data: JSON.stringify(payload)
         }));
       });
