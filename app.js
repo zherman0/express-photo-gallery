@@ -4,6 +4,10 @@ var app = express();
 var path = require("path");
 var directoryExists = require('directory-exists').sync;
 var static = require('serve-static');
+var aws = require('aws-sdk');
+var fs = require('fs');
+const util = require('./util.js');
+var http = require('http');
 
 var options = {
   title: 'Demo Photo Gallery',
@@ -12,14 +16,24 @@ var options = {
   // These options are ignored if "s3:" is not in the path/bucket name
   region: "us-west-1",
   s3Type: "aws", //"gfs" for gluster
-  clusterIP: null
+  clusterIP: null,
+  clusterPort: null
 };
 
 // Valid options.buckets
 // local : "/tmp/photos/"
-// AWS S3: bucket: s3://zac-demo-bucket1, Region: "us-west-1"
-// Gluster: bucket s3://bucket-demo-1, s3Type: "gfs", clusterIP: "12.34.56.78"
+// AWS S3: bucket: zac-demo-bucket1,  s3Type: "aws",Region: "us-west-1"
+// Gluster: bucket bucket-demo-1, s3Type: "gfs", clusterIP: "12.34.56.78"
 
+/* Config File:
+export OBJECT_STORAGE_BUCKET1="demo-bucket1"
+export OBJECT_STORAGE_BUCKET2="demo-bucket2"
+export OBJECT_STORAGE_REGION="us-west-1"
+export OBJECT_STORAGE_S3_TYPE="gfs"
+export OBJECT_STORAGE_CLUSTER_IP="33.24.24.24"
+export OBJECT_STORAGE_CLUSTER_IP="33104"
+
+*/
 
 // Go thru our expected environment values to see if they are set
 var envStorageBucket1 = process.env.OBJECT_STORAGE_BUCKET1;
@@ -27,6 +41,7 @@ var envStorageBucket2 = process.env.OBJECT_STORAGE_BUCKET2;
 var envStorageRegion = process.env.OBJECT_STORAGE_REGION;
 var envS3Type = process.env.OBJECT_STORAGE_S3_TYPE;
 var envClusterIP = process.env.OBJECT_STORAGE_CLUSTER_IP;
+var envClusterPort = process.env.OBJECT_STORAGE_CLUSTER_PORT;
 
 if (envStorageBucket1) {
     options.bucket = envStorageBucket1;
@@ -39,6 +54,9 @@ if (envS3Type) {
 }
 if (envClusterIP) {
     options.clusterIP = envClusterIP;
+}
+if (envClusterPort) {
+    options.clusterPort = envClusterPort;
 }
 
 
@@ -67,15 +85,57 @@ app.post('/upload', function(req, res) {
 
   // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
   let sampleFile = req.files.sampleFile;
+ // console.log("File", req.files.sampleFile);
+  if (!util.isObjectStore(options)) {
+    // Use the mv() method to place the file somewhere on your server
+    sampleFile.mv(util.buildS3url(options) + req.files.sampleFile.name, function(err) {
+      if (err)
+        return res.status(500).send(err);
+    });
+  }
+  else if (options.s3Type === 'aws'){  //Object Store like S3 or glusterFS
+    //need to putObject
+    var s3 = new aws.S3();
+    var param = {
+      Bucket: options.bucket,
+      region: options.region,
+      Key: req.files.sampleFile.name,
+      Body: new Buffer(sampleFile.data)
+    };
+    s3.putObject(param, function(err, data){
+      if(err) console.log(err);
+      else console.log(data);
+    });
 
-  // Use the mv() method to place the file somewhere on your server
-  sampleFile.mv(options.bucket + req.files.sampleFile.name, function(err) {
-    if (err)
-      return res.status(500).send(err);
+  }
+  else { //use this for gluster Obj Store
+
+
+  // Version 1
+    var param = {
+      host: options.clusterIP,
+      port: options.clusterPort,
+      path: options.bucket + '/' + req.files.sampleFile.name,
+      method: 'PUT',
+      content-type: "image/jpeg"
+//      body: new Buffer(sampleFile.data)
+    };
+//    var putReq = http.request(param);
+    var putReq = http.request(param, function(res) {
+      putReq.write(fs.createReadStream(sampleFile.data));
+    });
+    putReq.on('error', function(e) {
+      console.log('Error',e.message);
+    });
+    putReq.end();
+  }
+
+
+
 
 //   res.send('File uploaded!');
    res.redirect('/photos');
-  });
+
 });
 
 app.listen(3000);

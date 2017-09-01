@@ -7,7 +7,6 @@ var getS3Payload = require(__dirname + '/lib/get_s3_payload');
 var resolveModulePath = require(__dirname + '/lib/resolve_module_path');
 var mustache = require('mustache');
 var template = fs.readFileSync(__dirname + '/lib/template.html').toString();
-var url = require('url');
 mustache.parse(template);
 
 module.exports = function(photoPath, options) {
@@ -21,11 +20,10 @@ module.exports = function(photoPath, options) {
     thumbs: null,
   };
 
-  var urlObj = url.parse(photoPath);
-  var s3 = (urlObj.protocol === 's3:');
+  var s3 = (options.s3Type === 'aws') || (options.s3Type === 'gfs');
 
   if (s3) {
-    paths.bucket = urlObj.hostname;
+    paths.bucket = photoPath;
   }
 
   if (!s3) {
@@ -47,6 +45,7 @@ module.exports = function(photoPath, options) {
       getS3Payload(paths.bucket, options, function(payload) {
         res.send(mustache.render(template, {
           title: options.title || 'Photo Gallery',
+          bucket: options.bucket || 'Unknown',
           data: JSON.stringify(payload)
         }));
       });
