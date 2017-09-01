@@ -98,7 +98,6 @@ app.post('/upload', function(req, res) {
     var s3 = new aws.S3();
     var param = {
       Bucket: options.bucket,
-      region: options.region,
       Key: req.files.sampleFile.name,
       Body: new Buffer(sampleFile.data)
     };
@@ -110,22 +109,24 @@ app.post('/upload', function(req, res) {
   }
   else { //use this for gluster Obj Store
 
-
-  // Version 1
     var param = {
       host: options.clusterIP,
       port: options.clusterPort,
       path: options.bucket + '/' + req.files.sampleFile.name,
       method: 'PUT',
-      content-type: "image/jpeg"
-//      body: new Buffer(sampleFile.data)
+      headers: {
+          Accept: 'application/json',
+          'Content-Type': 'image/png',
+          'Content-Length': req.files.sampleFile.data.length
+        },
+      body: new Buffer(sampleFile.data)
     };
 //    var putReq = http.request(param);
     var putReq = http.request(param, function(res) {
-      putReq.write(fs.createReadStream(sampleFile.data));
+//      putReq.write(new Buffer(sampleFile.data));
     });
     putReq.on('error', function(e) {
-      console.log('Error',e.message);
+      console.log('Error==>',e);
     });
     putReq.end();
   }
@@ -134,7 +135,10 @@ app.post('/upload', function(req, res) {
 
 
 //   res.send('File uploaded!');
-   res.redirect('/photos');
+  setTimeout(function() {
+    res.redirect('/photos');
+  }, 10000);
+//   res.redirect('/photos');
 
 });
 
