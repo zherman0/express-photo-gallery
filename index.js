@@ -4,6 +4,7 @@ var static = require('serve-static');
 var directoryExists = require('directory-exists').sync;
 var getPayload = require(__dirname + '/lib/get_payload');
 var getS3Payload = require(__dirname + '/lib/get_s3_payload');
+var getGfsPayload = require(__dirname + '/lib/get_gfs_payload');
 var resolveModulePath = require(__dirname + '/lib/resolve_module_path');
 var mustache = require('mustache');
 var template = fs.readFileSync(__dirname + '/lib/template.html').toString();
@@ -40,9 +41,18 @@ module.exports = function(photoPath, options) {
 
   app.get('/', function(req, res) {
 
-    if (s3) {
+    if (options.s3Type === 'aws') {
 
       getS3Payload(paths.bucket, options, function(payload) {
+        res.send(mustache.render(template, {
+          title: options.title || 'Photo Gallery',
+          bucket: options.bucket || 'Unknown',
+          data: JSON.stringify(payload)
+        }));
+      });
+
+    } else if (options.s3Type === 'gfs') {
+      getGfsPayload(paths.bucket, options, function(payload) {
         res.send(mustache.render(template, {
           title: options.title || 'Photo Gallery',
           bucket: options.bucket || 'Unknown',

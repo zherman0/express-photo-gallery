@@ -2,7 +2,6 @@ var express = require('express');
 var fileUpload = require('express-fileupload');
 var app = express();
 var path = require("path");
-var directoryExists = require('directory-exists').sync;
 var static = require('serve-static');
 var aws = require('aws-sdk');
 var fs = require('fs');

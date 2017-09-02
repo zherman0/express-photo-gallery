@@ -22,7 +22,7 @@ exports.buildS3url = function(options) {
         }
     }
     else if (options.s3Type == "gfs") {
-        s3url = 'https://' + options.clusterIP +':'+ options.clusterPort + '/' + bucket + '/';
+        s3url = 'http://' + options.clusterIP +':'+ options.clusterPort + '/' + bucket ;
     }
     else {
       s3url = options.bucket;
