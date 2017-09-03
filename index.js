@@ -52,7 +52,7 @@ module.exports = function(photoPath, options) {
       });
 
     } else if (options.s3Type === 'gfs') {
-      getGfsPayload(paths.bucket, options, function(payload) {
+      getGfsPayload(options, function(payload) {
         res.send(mustache.render(template, {
           title: options.title || 'Photo Gallery',
           bucket: options.bucket || 'Unknown',
