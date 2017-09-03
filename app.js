@@ -7,6 +7,7 @@ var aws = require('aws-sdk');
 var fs = require('fs');
 const util = require('./util.js');
 var http = require('http');
+var request = require('request');
 
 var options = {
   title: 'Demo Photo Gallery',
@@ -93,6 +94,7 @@ app.post('/upload', function(req, res) {
     });
   }
   else if (options.s3Type === 'aws'){  //Object Store like S3 or glusterFS
+
     //need to putObject
     var s3 = new aws.S3();
     var param = {
@@ -106,29 +108,32 @@ app.post('/upload', function(req, res) {
     });
 
   }
-  else { //use this for gluster Obj Store
+  else if (options.s3Type === 'gfs'){ //use this for gluster Obj Store
 
-    var param = {
-      host: options.clusterIP,
-      port: options.clusterPort,
-      path: options.bucket + '/' + req.files.sampleFile.name,
-      method: 'PUT',
-      headers: {
-          Accept: 'application/json',
-          'Content-Type': 'image/png',
-          'Content-Length': req.files.sampleFile.data.length
-        },
-      body: new Buffer(sampleFile.data)
-    };
-//    var putReq = http.request(param);
-    var putReq = http.request(param, function(res) {
-//      putReq.write(new Buffer(sampleFile.data));
-    });
-    putReq.on('error', function(e) {
-      console.log('Error==>',e);
-    });
-    putReq.end();
+    var goapiserver = "http://localhost";
+    var goapiserverPort = "8888";
+    var method = "putFile";
+    var bucket = options.bucket;
+
+    var apiUrl = goapiserver + ':' + goapiserverPort + '/' + method + '/' + bucket +'/' + req.files.sampleFile.name;
+
+request({
+  url: apiUrl,
+  method: 'POST',
+  formData: {
+//    'name': req.files.sampleFile.name,
+    'data': new Buffer(req.files.sampleFile.data)
   }
+},function (error, response, body) {
+      if (error) {
+        return console.error('upload failed:', error);
+      }
+      console.log('Upload successful!  Server responded with:', body);
+ });
+
+
+
+  } //end if gfs
 
 
 
