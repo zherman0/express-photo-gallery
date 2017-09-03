@@ -37,7 +37,8 @@
     "aws-sdk":"*",
     "express-fileupload":"*",
     "express-photo-gallery":"*",
-    "minio":"*"
+    "minio":"*",
+    "node-rest-client":"*"
   },
   "devDependencies": {
     "async": "^2.3.0",
